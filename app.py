@@ -29,17 +29,6 @@ def fetch_gbp_to_eur_rate():
         pass
     return 1.17
 
-@st.cache_data(ttl=60 * 60)
-def fetch_usd_to_eur_rate():
-    try:
-        res = requests.get("https://api.exchangerate.host/convert", params={"from": "USD", "to": "EUR"})
-        data = res.json()
-        if data.get("success", True):
-            return float(data.get("info", {}).get("rate", 0.86))
-    except Exception:
-        pass
-    return 0.86
-
 def read_matrix_excel(path, sheet=DEFAULT_SHEET):
     df = pd.read_excel(path, sheet_name=sheet, header=None, engine="openpyxl")
     max_col = df.shape[1]
@@ -71,13 +60,13 @@ def read_matrix_excel(path, sheet=DEFAULT_SHEET):
             "size_cm2": size_int,
             "monkey_price_gbp": None if pd.isna(monkey_prices[i]) else float(monkey_prices[i]),
             "monkey_postage_gbp": None if pd.isna(monkey_postage[i]) else float(monkey_postage[i]),
-            "artelo_price_usd": None if pd.isna(artelo_prices[i]) else float(artelo_prices[i]),
-            "artelo_postage_usd": None if pd.isna(artelo_postage[i]) else float(artelo_postage[i]),
+            "artelo_price_eur": None if pd.isna(artelo_prices[i]) else float(artelo_prices[i]),
+            "artelo_postage_eur": None if pd.isna(artelo_postage[i]) else float(artelo_postage[i]),
         }
         tidy.append(row)
     return pd.DataFrame(tidy).sort_values("size_cm2").reset_index(drop=True)
 
-def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
+def compute_cost_for_choice(row, printer, gbp_to_eur_rate):
     if printer == "Monkey Puzzle":
         price_gbp = row["monkey_price_gbp"]
         postage_gbp = row["monkey_postage_gbp"]
@@ -90,16 +79,15 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         postage_eur = postage_gbp * gbp_to_eur_rate
         return round(total_eur, 2), round(postage_eur, 2), price_gbp, postage_gbp
     elif printer == "Artelo":
-        price_usd = row["artelo_price_usd"]
-        postage_usd = row["artelo_postage_usd"]
-        if price_usd is None:
+        price_eur = row["artelo_price_eur"]
+        postage_eur = row["artelo_postage_eur"]
+        if price_eur is None:
             return None, None, None, None
-        if postage_usd is None:
-            postage_usd = 15
-        total_usd = price_usd + postage_usd
-        total_eur = total_usd * usd_to_eur_rate
-        postage_eur = postage_usd * usd_to_eur_rate
-        return round(total_eur, 2), round(postage_eur, 2), price_usd, postage_usd
+        if postage_eur is None:
+            postage_eur = 15
+        total_eur = price_eur + postage_eur
+        # No conversion needed, prices are already in EUR
+        return round(total_eur, 2), round(postage_eur, 2), price_eur, postage_eur
     else:
         return None, None, None, None
 
@@ -133,7 +121,7 @@ if uploaded_file:
 else:
     if not os.path.exists(DEFAULT_EXCEL_PATH):
         st.warning(f"No file at {DEFAULT_EXCEL_PATH}. Please upload or place your Excel file.")
-        costs_df = pd.DataFrame(columns=["size_cm2","monkey_price_gbp","monkey_postage_gbp","artelo_price_usd","artelo_postage_usd"])
+        costs_df = pd.DataFrame(columns=["size_cm2","monkey_price_gbp","monkey_postage_gbp","artelo_price_eur","artelo_postage_eur"])
     else:
         try:
             costs_df = read_matrix_excel(DEFAULT_EXCEL_PATH)
@@ -145,10 +133,8 @@ else:
 
 # Fetch exchange rate
 gbp_to_eur_rate = fetch_gbp_to_eur_rate()
-usd_to_eur_rate = fetch_usd_to_eur_rate()
 current_date = datetime.date.today().strftime("%Y-%m-%d")
 st.sidebar.metric("Live GBP → EUR rate", f"{gbp_to_eur_rate:.4f}")
-st.sidebar.metric("Live USD → EUR rate", f"{usd_to_eur_rate:.4f}")
 
 # Tabs for main calculation and database viewing
 tab1, tab2 = st.tabs(["Calculate Price", "View Database"])
@@ -190,7 +176,7 @@ with tab1:
         etsy_fee_percent = st.number_input("Etsy fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
 
         # Calculate costs
-        base_cost_eur, postage_eur, original_price, original_postage = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
+        base_cost_eur, postage_eur, original_price, original_postage = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate)
 
         if base_cost_eur is None:
             st.error("Cost data missing for this size/printer.")
@@ -204,8 +190,8 @@ with tab1:
             # Compute print area cost in EUR (excluding postage)
             if printer_choice == "Monkey Puzzle" and row["monkey_price_gbp"] is not None:
                 print_cost_eur = row["monkey_price_gbp"] * gbp_to_eur_rate
-            elif printer_choice == "Artelo" and row["artelo_price_usd"] is not None:
-                print_cost_eur = row["artelo_price_usd"] * usd_to_eur_rate
+            elif printer_choice == "Artelo" and row["artelo_price_eur"] is not None:
+                print_cost_eur = row["artelo_price_eur"]
             else:
                 print_cost_eur = None
 
@@ -245,7 +231,3 @@ with tab1:
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
-
-with tab2:
-    st.subheader("Full Database")
-    st.dataframe(costs_df)
