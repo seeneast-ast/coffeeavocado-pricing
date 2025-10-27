@@ -86,7 +86,7 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate):
         if postage_eur is None:
             postage_eur = 15
         total_eur = price_eur + postage_eur
-        # No conversion needed, prices are already in EUR
+        # Prices are already in EUR
         return round(total_eur, 2), round(postage_eur, 2), price_eur, postage_eur
     else:
         return None, None, None, None
@@ -204,7 +204,7 @@ with tab1:
                     )
                 elif printer_choice == "Artelo" and original_price is not None:
                     st.markdown(
-                        f"Print cost (€): {print_cost_eur:.2f} (<i>\${original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                        f"Print cost (€): {print_cost_eur:.2f} (Price: €{original_price:.2f})",
                         unsafe_allow_html=True
                     )
                 else:
@@ -212,7 +212,7 @@ with tab1:
             else:
                 st.write(f"Print cost (€): €{base_cost_eur:.2f}")
 
-            # Postage in EUR with original in parentheses with the rate
+            # Postage in EUR with original in parentheses
             if printer_choice == "Monkey Puzzle" and original_postage is not None:
                 st.markdown(
                     f"Postage (€): {postage_eur:.2f} (<i>£{original_postage:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
@@ -220,7 +220,7 @@ with tab1:
                 )
             elif printer_choice == "Artelo" and original_postage is not None:
                 st.markdown(
-                    f"Postage (€): {postage_eur:.2f} (<i>\${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                    f"Postage (€): {postage_eur:.2f} (<i>€{original_postage:.2f})</i>)",
                     unsafe_allow_html=True
                 )
             else:
@@ -231,3 +231,7 @@ with tab1:
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
+
+with tab2:
+    st.subheader("Full Database")
+    st.dataframe(costs_df)
