@@ -227,7 +227,7 @@ with tab1:
                     unsafe_allow_html=True
                 )
             else:
-                st.write(f"Postage: {postage_eur:.2f}"€)
+                st.write(f"Postage: {postage_eur:.2f}€")
 
             # Etsy fee and final price
             etsy_fee_value = final_price * etsy_fee_percent
