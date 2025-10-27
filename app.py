@@ -82,24 +82,26 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         price_gbp = row["monkey_price_gbp"]
         postage_gbp = row["monkey_postage_gbp"]
         if price_gbp is None:
-            return None
+            return None, None
         if postage_gbp is None:
             postage_gbp = 0.0
         total_gbp = price_gbp + postage_gbp
         total_eur = total_gbp * gbp_to_eur_rate
-        return round(total_eur, 2)
+        postage_eur = postage_gbp * gbp_to_eur_rate
+        return round(total_eur, 2), round(postage_eur, 2)
     elif printer == "Artelo":
         price_usd = row["artelo_price_usd"]
         postage_usd = row["artelo_postage_usd"]
         if price_usd is None:
-            return None
+            return None, None
         if postage_usd is None:
             postage_usd = 0.0
         total_usd = price_usd + postage_usd
         total_eur = total_usd * usd_to_eur_rate
-        return round(total_eur, 2)
+        postage_eur = postage_usd * usd_to_eur_rate
+        return round(total_eur, 2), round(postage_eur, 2)
     else:
-        return None
+        return None, None
 
 def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_percent):
     desired_profit_amt = max(base_cost_eur * profit_percent, min_profit_eur)
@@ -176,8 +178,8 @@ if chosen_size_cm2:
         min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
         etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
 
-        # Calculate base cost
-        base_cost_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
+        # Calculate base cost and postage
+        base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
         if base_cost_eur is None:
             st.error("Cost data missing for this size/printer.")
         else:
@@ -187,7 +189,7 @@ if chosen_size_cm2:
             st.subheader("Cost Breakdown")
             st.write(f"Print area: {chosen_size_cm2} cm²")
             st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
-            st.write(f"Postage (EUR): €{0:.2f}")  # No separate postage info provided, so default to 0
+            st.write(f"Postage (EUR): €{postage_eur:.2f}")
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.write(f"Profit (€): €{profit_eur:.2f}")
