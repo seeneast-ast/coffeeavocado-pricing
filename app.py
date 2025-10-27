@@ -84,7 +84,7 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         if price_gbp is None:
             return None, None, None, None
         if postage_gbp is None:
-            postage_gbp = 0.0
+            postage_gbp = 6.5
         total_gbp = price_gbp + postage_gbp
         total_eur = total_gbp * gbp_to_eur_rate
         postage_eur = postage_gbp * gbp_to_eur_rate
@@ -95,7 +95,7 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         if price_usd is None:
             return None, None, None, None
         if postage_usd is None:
-            postage_usd = 0.0
+            postage_usd = 15
         total_usd = price_usd + postage_usd
         total_eur = total_usd * usd_to_eur_rate
         postage_eur = postage_usd * usd_to_eur_rate
@@ -201,17 +201,28 @@ with tab1:
             st.subheader("Cost Breakdown")
             st.write(f"Cost of print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
 
+            # Compute print area cost in EUR (excluding postage)
+            if printer_choice == "Monkey Puzzle" and row["monkey_price_gbp"] is not None:
+                print_cost_eur = row["monkey_price_gbp"] * gbp_to_eur_rate
+            elif printer_choice == "Artelo" and row["artelo_price_usd"] is not None:
+                print_cost_eur = row["artelo_price_usd"] * usd_to_eur_rate
+            else:
+                print_cost_eur = None
+
             # Print cost in EUR with original in parentheses with the rate
-            if printer_choice == "Monkey Puzzle" and original_price is not None:
-                st.markdown(
-                    f"Print cost (€): {base_cost_eur:.2f} (<i>£{original_price:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
-                    unsafe_allow_html=True
-                )
-            elif printer_choice == "Artelo" and original_price is not None:
-                st.markdown(
-                    f"Print cost (€): {base_cost_eur:.2f} (<i>$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
-                    unsafe_allow_html=True
-                )
+            if print_cost_eur is not None:
+                if printer_choice == "Monkey Puzzle" and original_price is not None:
+                    st.markdown(
+                        f"Print cost (€): {print_cost_eur:.2f} (<i>£{original_price:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
+                        unsafe_allow_html=True
+                    )
+                elif printer_choice == "Artelo" and original_price is not None:
+                    st.markdown(
+                        f"Print cost (€): {print_cost_eur:.2f} (<i>$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.write(f"Print cost (€): €{print_cost_eur:.2f}")
             else:
                 st.write(f"Print cost (€): €{base_cost_eur:.2f}")
 
