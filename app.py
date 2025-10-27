@@ -9,7 +9,7 @@ import math
 # -----------------------
 # Config / Defaults
 # -----------------------
-DEFAULT_EXCEL_PATH = "print_costs.xlsx"
+DEFAULT_EXCEL_PATH = "data/print_costs.xlsx"
 DEFAULT_SHEET = "costs"
 DEFAULT_ETS_FEE = 0.15
 DEFAULT_GBP_BASE = "GBP"
@@ -156,16 +156,14 @@ if size_option == "Type your size":
     size_input = st.number_input("Enter print size (cm²):", min_value=1, step=1)
     chosen_size_cm2 = size_input
 else:
-    # Use offered size
-    size_str = size_option
     # Parse size from string like "21x30" -> 21*30
     try:
-        parts = size_str.split('x')
+        parts = size_option.split('x')
         if len(parts) == 2:
             w, h = int(parts[0]), int(parts[1])
             chosen_size_cm2 = w * h
         else:
-            chosen_size_cm2 = int(size_str)
+            chosen_size_cm2 = int(size_option)
     except:
         chosen_size_cm2 = None
 
@@ -177,31 +175,29 @@ if chosen_size_cm2:
         row = row.iloc[0]
         # Inputs
         printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
-        profit_percent = st.number_input("Desired profit %", min_value=0.0, max_value=5.0, value=0.40, step=0.05, format="%.2f")
+        profit_percent = st.number_input("Desired profit %", min_value=0.0, max_value=5.0, value=15.0, step=1.0)
         min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
-        etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=0.5, value=DEFAULT_ETS_FEE, step=0.01, format="%.2f")
+        etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=0.5, value=35.0, step=1.0) / 100
 
         # Calculate base cost
         base_cost_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
         if base_cost_eur is None:
             st.error("Cost data missing for this size/printer.")
         else:
-            final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_percent)
+            final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
 
             # Display breakdown
             st.subheader("Cost Breakdown")
             st.write(f"Print cost + Postage (EUR): €{base_cost_eur:.2f}")
-            st.write(f"Etsy fee ({etsy_fee_percent*100:.1f}%): €{(final_price * etsy_fee_percent):.2f}")
+            etsy_fee_value = final_price * etsy_fee_percent
+            st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.write(f"Desired profit (€): €{profit_eur:.2f}")
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
             # Show formula summary
-            total_costs = math.ceil(base_cost_eur + (final_price * etsy_fee_percent) + profit_eur)
+            total_costs = math.ceil(base_cost_eur + etsy_fee_value + profit_eur)
             st.markdown("### Print cost + Postage + Etsy fees + Desired profit = Recommended Etsy price")
-            st.write(f"€{base_cost_eur:.2f} + (Etsy fees) + €{profit_eur:.2f} = €{total_costs}")
+            st.write(f"€{base_cost_eur:.2f} + {int(etsy_fee_percent*100)}% Etsy fees + €{profit_eur:.2f} = €{total_costs}")
 
 else:
     st.info("Select or input a valid print size.")
-
-# Additional info
-st.markdown("**Tip:** The recommended price is rounded up to the nearest euro.")
