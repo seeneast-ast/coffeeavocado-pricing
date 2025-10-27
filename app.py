@@ -218,12 +218,12 @@ with tab1:
             # Postage in EUR with original in parentheses with the rate
             if printer_choice == "Monkey Puzzle" and original_postage is not None:
                 st.markdown(
-                    f"Postage (€): €{postage_eur:.2f} (<i>£{original_postage:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
+                    f"Postage (€): {postage_eur:.2f} (<i>£{original_postage:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
                     unsafe_allow_html=True
                 )
             elif printer_choice == "Artelo" and original_postage is not None:
                 st.markdown(
-                    f"Postage (€): €{postage_eur:.2f} (<i>${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                    f"Postage (€): {postage_eur:.2f} (<i>${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
                     unsafe_allow_html=True
                 )
             else:
