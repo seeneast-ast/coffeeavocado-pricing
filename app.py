@@ -203,10 +203,8 @@ with tab1:
 
             # Print cost in EUR with original in parentheses in italics
             if printer_choice == "Monkey Puzzle" and original_price is not None:
-                # GBP original
                 st.markdown(f"Print cost (€): €{base_cost_eur:.2f} (<i>£{original_price:.2f}</i>)", unsafe_allow_html=True)
             elif printer_choice == "Artelo" and original_price is not None:
-                # USD original
                 st.markdown(f"Print cost (€): €{base_cost_eur:.2f} (<i>${original_price:.2f}</i>)", unsafe_allow_html=True)
             else:
                 st.write(f"Print cost (€): €{base_cost_eur:.2f}")
