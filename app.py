@@ -235,8 +235,9 @@ with tab1:
             # Display total cost
             st.write(f"Total Cost (€): €{total_cost_eur:.2f}")
 
-            st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
+            
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
+            st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
 
 with tab2:
     st.subheader("Full Database")
