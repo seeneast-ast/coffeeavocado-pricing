@@ -218,7 +218,7 @@ with tab1:
                     )
                 elif printer_choice == "Artelo" and original_price is not None:
                     st.markdown(
-                        f"Print cost (€): {print_cost_eur:.2f} (<i>$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                        f"Print cost (€): {print_cost_eur:.2f} (<i>\$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
                         unsafe_allow_html=True
                     )
                 else:
@@ -234,7 +234,7 @@ with tab1:
                 )
             elif printer_choice == "Artelo" and original_postage is not None:
                 st.markdown(
-                    f"Postage (€): {postage_eur:.2f} (<i>${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                    f"Postage (€): {postage_eur:.2f} (<i>\${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
                     unsafe_allow_html=True
                 )
             else:
