@@ -174,31 +174,37 @@ with tab1:
     if chosen_size_cm2:
         row = costs_df[costs_df["size_cm2"] == chosen_size_cm2]
         if row.empty:
-            st.error("Size not found in database.")
+            # Find the closest size in the database
+            closest_idx = (costs_df["size_cm2"] - chosen_size_cm2).abs().idxmin()
+            closest_row = costs_df.iloc[closest_idx]
+            closest_size = closest_row["size_cm2"]
+            st.warning(f"Size {chosen_size_cm2} cm² not found. Using closest available size: {closest_size} cm².")
+            row = closest_row
         else:
             row = row.iloc[0]
-            # Inputs
-            printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
-            profit_percent = st.number_input("Profit (%)", min_value=0.0, max_value=100.0, value=35.0, step=1.0)
-            min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
-            etsy_fee_percent = st.number_input("Etsy fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
+        # Proceed with calculations...
+        # Inputs
+        printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
+        profit_percent = st.number_input("Profit (%)", min_value=0.0, max_value=100.0, value=35.0, step=1.0)
+        min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
+        etsy_fee_percent = st.number_input("Etsy fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
 
-            # Calculate base cost and postage
-            base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
-            if base_cost_eur is None:
-                st.error("Cost data missing for this size/printer.")
-            else:
-                final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
+        # Calculate base cost and postage
+        base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
+        if base_cost_eur is None:
+            st.error("Cost data missing for this size/printer.")
+        else:
+            final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
 
-                # Display breakdown
-                st.subheader("Cost Breakdown")
-                st.write(f"Print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
-                st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
-                st.write(f"Postage (EUR): €{postage_eur:.2f}")
-                etsy_fee_value = final_price * etsy_fee_percent
-                st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
-                st.write(f"Profit (€): €{profit_eur:.2f}")
-                st.write(f"Final recommended Etsy price: €{final_price:.2f}")
+            # Display breakdown
+            st.subheader("Cost Breakdown")
+            st.write(f"Print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
+            st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
+            st.write(f"Postage (EUR): €{postage_eur:.2f}")
+            etsy_fee_value = final_price * etsy_fee_percent
+            st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
+            st.write(f"Profit (€): €{profit_eur:.2f}")
+            st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
 with tab2:
     st.subheader("Full Database")
