@@ -82,7 +82,7 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         price_gbp = row["monkey_price_gbp"]
         postage_gbp = row["monkey_postage_gbp"]
         if price_gbp is None:
-            return None, None
+            return None, None, None, None
         if postage_gbp is None:
             postage_gbp = 0.0
         total_gbp = price_gbp + postage_gbp
@@ -112,6 +112,7 @@ def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_per
     profit_eur = final_price * (1 - etsy_fee_percent) - base_cost_eur
     return round(final_price, 2), round(profit_eur, 2)
 
+# New helper function for hover tooltip
 def display_with_tooltip(amount_eur, original_amount, rate, date):
     tooltip_text = f"Original: {original_amount:.2f}\nRate: {rate:.4f}\nDate: {date}"
     html_str = f'<span title="{tooltip_text}">{amount_eur:.2f}</span>'
