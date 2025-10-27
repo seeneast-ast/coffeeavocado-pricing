@@ -252,19 +252,11 @@ with tab1:
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
             # Show current Etsy price and profit if available
-            current_etsy_price = row.get("current_etsy_price")
-            current_profit = row.get("current_profit")
-            if current_etsy_price is not None:
+            if row.get("current_etsy_price") is not None:
+                current_etsy_price = row["current_etsy_price"]
+                current_profit = current_etsy_price - total_cost_eur
                 st.write(f"Current Etsy Price: €{current_etsy_price:.2f}")
-            else:
-                st.write("Current Etsy Price: N/A")
-            if current_profit is not None:
                 st.write(f"Current Profit: €{current_profit:.2f}")
             else:
+                st.write("Current Etsy Price: N/A")
                 st.write("Current Profit: N/A")
-            # Profit in EUR
-            st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
-
-with tab2:
-    st.subheader("Full Database")
-    st.dataframe(costs_df)
