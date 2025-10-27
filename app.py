@@ -33,6 +33,8 @@ def read_matrix_excel(path, sheet=DEFAULT_SHEET):
     df = pd.read_excel(path, sheet_name=sheet, header=None, engine="openpyxl")
     max_col = df.shape[1]
     sizes = df.iloc[0, :].tolist()
+
+    # Load data from specific rows
     monkey_prices = [None] * max_col
     monkey_postage = [None] * max_col
     artelo_prices = [None] * max_col
@@ -46,6 +48,14 @@ def read_matrix_excel(path, sheet=DEFAULT_SHEET):
         artelo_prices = df.iloc[8, :].tolist()
     if df.shape[0] > 9:
         artelo_postage = df.iloc[9, :].tolist()
+
+    # Load current Etsy prices and profits from row 11 and 12
+    current_etsy_prices = [None] * max_col
+    current_profits = [None] * max_col
+    if df.shape[0] > 10:
+        current_etsy_prices = df.iloc[10, :].tolist()
+    if df.shape[0] > 11:
+        current_profits = df.iloc[11, :].tolist()
 
     tidy = []
     for i, s in enumerate(sizes):
@@ -62,6 +72,8 @@ def read_matrix_excel(path, sheet=DEFAULT_SHEET):
             "monkey_postage_gbp": None if pd.isna(monkey_postage[i]) else float(monkey_postage[i]),
             "artelo_price_eur": None if pd.isna(artelo_prices[i]) else float(artelo_prices[i]),
             "artelo_postage_eur": None if pd.isna(artelo_postage[i]) else float(artelo_postage[i]),
+            "current_etsy_price": None if pd.isna(current_etsy_prices[i]) else float(current_etsy_prices[i]),
+            "current_profit": None if pd.isna(current_profits[i]) else float(current_profits[i]),
         }
         tidy.append(row)
     return pd.DataFrame(tidy).sort_values("size_cm2").reset_index(drop=True)
@@ -229,14 +241,28 @@ with tab1:
             # Etsy fee and final price
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
+
             # Calculate total cost
             total_cost_eur = print_cost_eur + etsy_fee_value + postage_eur
 
             # Display total cost
             st.write(f"Total Cost (€): €{total_cost_eur:.2f}")
 
-            
+            # Final recommended price
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
+
+            # Show current Etsy price and profit if available
+            current_etsy_price = row.get("current_etsy_price")
+            current_profit = row.get("current_profit")
+            if current_etsy_price is not None:
+                st.write(f"Current Etsy Price: €{current_etsy_price:.2f}")
+            else:
+                st.write("Current Etsy Price: N/A")
+            if current_profit is not None:
+                st.write(f"Current Profit: €{current_profit:.2f}")
+            else:
+                st.write("Current Profit: N/A")
+            # Profit in EUR
             st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
 
 with tab2:
