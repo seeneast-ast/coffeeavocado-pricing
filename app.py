@@ -195,7 +195,7 @@ with tab1:
             else:
                 print_cost_eur = None
 
-            # Print cost in EUR with original in parentheses with the rate
+            # Display print cost
             if print_cost_eur is not None:
                 if printer_choice == "Monkey Puzzle" and original_price is not None:
                     st.markdown(
@@ -204,7 +204,7 @@ with tab1:
                     )
                 elif printer_choice == "Artelo" and original_price is not None:
                     st.markdown(
-                        f"Print cost (€): {print_cost_usd:.2f}",
+                        f"Print cost (€): {original_price:.2f}",
                         unsafe_allow_html=True
                     )
                 else:
@@ -220,7 +220,7 @@ with tab1:
                 )
             elif printer_choice == "Artelo" and original_postage is not None:
                 st.markdown(
-                    f"Postage (€): {postage_usd:.2f}",
+                    f"Postage (€): {postage_eur:.2f}",
                     unsafe_allow_html=True
                 )
             else:
