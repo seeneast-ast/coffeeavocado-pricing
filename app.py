@@ -188,7 +188,7 @@ if chosen_size_cm2:
             st.write(f"Print cost + Postage (EUR): €{base_cost_eur:.2f}")
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
-            st.write(f"Desired profit (€): €{profit_eur:.2f}")
+            st.write(f"Profit (€): €{profit_eur:.2f}")
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
             # Show formula summary
