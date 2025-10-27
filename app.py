@@ -201,33 +201,39 @@ with tab1:
             st.subheader("Cost Breakdown")
             st.write(f"Cost of print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
 
-            # For print cost in EUR
-if printer_choice == "Monkey Puzzle" and original_price is not None:
-    st.markdown(
-        f"Print cost: €{base_cost_eur:.2f} (<i>£{original_price:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
-        unsafe_allow_html=True
-    )
-elif printer_choice == "Artelo" and original_price is not None:
-    st.markdown(
-        f"Print cost: €{base_cost_eur:.2f} (<i>$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
-        unsafe_allow_html=True
-    )
-else:
-    st.write(f"Print cost: €{base_cost_eur:.2f}")
+            # Print cost in EUR with original in parentheses with the rate
+            if printer_choice == "Monkey Puzzle" and original_price is not None:
+                st.markdown(
+                    f"Print cost (€): {base_cost_eur:.2f} (<i>£{original_price:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
+                    unsafe_allow_html=True
+                )
+            elif printer_choice == "Artelo" and original_price is not None:
+                st.markdown(
+                    f"Print cost (€): {base_cost_eur:.2f} (<i>$ {original_price:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                    unsafe_allow_html=True
+                )
+            else:
+                st.write(f"Print cost (€): €{base_cost_eur:.2f}")
 
-# For postage in EUR
-if printer_choice == "Monkey Puzzle" and original_postage is not None:
-    st.markdown(
-        f"Postage: €{postage_eur:.2f} (<i>£{original_postage:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
-        unsafe_allow_html=True
-    )
-elif printer_choice == "Artelo" and original_postage is not None:
-    st.markdown(
-        f"Postage: €{postage_eur:.2f} (<i>${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
-        unsafe_allow_html=True
-    )
-else:
-    st.write(f"Postage: €{postage_eur:.2f}")
+            # Postage in EUR with original in parentheses with the rate
+            if printer_choice == "Monkey Puzzle" and original_postage is not None:
+                st.markdown(
+                    f"Postage (€): {postage_eur:.2f} (<i>£{original_postage:.2f} rate: £1={gbp_to_eur_rate:.2f}€</i>)",
+                    unsafe_allow_html=True
+                )
+            elif printer_choice == "Artelo" and original_postage is not None:
+                st.markdown(
+                    f"Postage (€): {postage_eur:.2f} (<i>${original_postage:.2f} rate: $1={usd_to_eur_rate:.2f}€</i>)",
+                    unsafe_allow_html=True
+                )
+            else:
+                st.write(f"Postage: {postage_eur:.2f}"€)
+
+            # Etsy fee and final price
+            etsy_fee_value = final_price * etsy_fee_percent
+            st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
+            st.write(f"Profit (€): €{profit_eur:.2f}")
+            st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
 with tab2:
     st.subheader("Full Database")
