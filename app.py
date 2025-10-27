@@ -205,24 +205,25 @@ with tab1:
 
             # Display breakdown with tooltips
             st.subheader("Cost Breakdown")
-            st.write(f"Print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
+            st.write(f"Cost of print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
+
             # Print cost in EUR with tooltip
             if printer_choice == "Monkey Puzzle" and original_price is not None:
                 price_html = display_with_tooltip(base_cost_eur, original_price, gbp_to_eur_rate, current_date)
-                st.markdown(f"Print cost (EUR): {price_html}", unsafe_allow_html=True)
+                st.markdown(f"**Print cost (EUR):** {price_html}", unsafe_allow_html=True)
             elif printer_choice == "Artelo" and original_price is not None:
                 price_html = display_with_tooltip(base_cost_eur, original_price, usd_to_eur_rate, current_date)
-                st.markdown(f"Print cost (EUR): {price_html}", unsafe_allow_html=True)
+                st.markdown(f"**Print cost (EUR):** {price_html}", unsafe_allow_html=True)
             else:
                 st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
 
             # Postage in EUR with tooltip
             if printer_choice == "Monkey Puzzle" and original_postage is not None:
                 postage_html = display_with_tooltip(postage_eur, original_postage, gbp_to_eur_rate, current_date)
-                st.markdown(f"Postage (EUR): {postage_html}", unsafe_allow_html=True)
+                st.markdown(f"**Postage (EUR):** {postage_html}", unsafe_allow_html=True)
             elif printer_choice == "Artelo" and original_postage is not None:
                 postage_html = display_with_tooltip(postage_eur, original_postage, usd_to_eur_rate, current_date)
-                st.markdown(f"Postage (EUR): {postage_html}", unsafe_allow_html=True)
+                st.markdown(f"**Postage (EUR):** {postage_html}", unsafe_allow_html=True)
             else:
                 st.write(f"Postage (EUR): €{postage_eur:.2f}")
 
