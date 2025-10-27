@@ -4,7 +4,7 @@ import numpy as np
 import requests
 from io import BytesIO
 import os
-import math
+import datetime
 
 # -----------------------
 # Config / Defaults
@@ -88,20 +88,20 @@ def compute_cost_for_choice(row, printer, gbp_to_eur_rate, usd_to_eur_rate):
         total_gbp = price_gbp + postage_gbp
         total_eur = total_gbp * gbp_to_eur_rate
         postage_eur = postage_gbp * gbp_to_eur_rate
-        return round(total_eur, 2), round(postage_eur, 2)
+        return round(total_eur, 2), round(postage_eur, 2), price_gbp, postage_gbp
     elif printer == "Artelo":
         price_usd = row["artelo_price_usd"]
         postage_usd = row["artelo_postage_usd"]
         if price_usd is None:
-            return None, None
+            return None, None, None, None
         if postage_usd is None:
             postage_usd = 0.0
         total_usd = price_usd + postage_usd
         total_eur = total_usd * usd_to_eur_rate
         postage_eur = postage_usd * usd_to_eur_rate
-        return round(total_eur, 2), round(postage_eur, 2)
+        return round(total_eur, 2), round(postage_eur, 2), price_usd, postage_usd
     else:
-        return None, None
+        return None, None, None, None
 
 def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_percent):
     desired_profit_amt = max(base_cost_eur * profit_percent, min_profit_eur)
@@ -111,6 +111,11 @@ def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_per
     final_price = (base_cost_eur + desired_profit_amt) / denominator
     profit_eur = final_price * (1 - etsy_fee_percent) - base_cost_eur
     return round(final_price, 2), round(profit_eur, 2)
+
+def display_with_tooltip(amount_eur, original_amount, rate, date):
+    tooltip_text = f"Original: {original_amount:.2f}\nRate: {rate:.4f}\nDate: {date}"
+    html_str = f'<span title="{tooltip_text}">{amount_eur:.2f}</span>'
+    return html_str
 
 # -----------------------
 # UI
@@ -146,6 +151,7 @@ else:
 # Fetch exchange rate
 gbp_to_eur_rate = fetch_gbp_to_eur_rate()
 usd_to_eur_rate = fetch_usd_to_eur_rate()
+current_date = datetime.date.today().strftime("%Y-%m-%d")
 st.sidebar.metric("Live GBP → EUR rate", f"{gbp_to_eur_rate:.4f}")
 st.sidebar.metric("Live USD → EUR rate", f"{usd_to_eur_rate:.4f}")
 
@@ -190,17 +196,36 @@ with tab1:
         etsy_fee_percent = st.number_input("Etsy fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
 
         # Calculate base cost and postage
-        base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
+        base_cost_eur, postage_eur, original_price, original_postage = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
         if base_cost_eur is None:
             st.error("Cost data missing for this size/printer.")
         else:
             final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
 
-            # Display breakdown
+            # Display breakdown with tooltips
             st.subheader("Cost Breakdown")
             st.write(f"Print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
-            st.write(f"Print cost (€): €{base_cost_eur:.2f}")
-            st.write(f"Postage (€): €{postage_eur:.2f}")
+            # Print cost in EUR with tooltip
+            if printer_choice == "Monkey Puzzle" and original_price is not None:
+                price_html = display_with_tooltip(base_cost_eur, original_price, gbp_to_eur_rate, current_date)
+                st.markdown(f"Print cost (EUR): {price_html}", unsafe_allow_html=True)
+            elif printer_choice == "Artelo" and original_price is not None:
+                price_html = display_with_tooltip(base_cost_eur, original_price, usd_to_eur_rate, current_date)
+                st.markdown(f"Print cost (EUR): {price_html}", unsafe_allow_html=True)
+            else:
+                st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
+
+            # Postage in EUR with tooltip
+            if printer_choice == "Monkey Puzzle" and original_postage is not None:
+                postage_html = display_with_tooltip(postage_eur, original_postage, gbp_to_eur_rate, current_date)
+                st.markdown(f"Postage (EUR): {postage_html}", unsafe_allow_html=True)
+            elif printer_choice == "Artelo" and original_postage is not None:
+                postage_html = display_with_tooltip(postage_eur, original_postage, usd_to_eur_rate, current_date)
+                st.markdown(f"Postage (EUR): {postage_html}", unsafe_allow_html=True)
+            else:
+                st.write(f"Postage (EUR): €{postage_eur:.2f}")
+
+            # Etsy fee
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.write(f"Profit (€): €{profit_eur:.2f}")
