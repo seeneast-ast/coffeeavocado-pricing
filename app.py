@@ -185,7 +185,9 @@ if chosen_size_cm2:
 
             # Display breakdown
             st.subheader("Cost Breakdown")
-            st.write(f"Print cost + Postage (EUR): €{base_cost_eur:.2f}")
+            st.write(f"Print area: {chosen_size_cm2} cm²")
+            st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
+            st.write(f"Postage (EUR): €{0:.2f}")  # No separate postage info provided, so default to 0
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
             st.write(f"Profit (€): €{profit_eur:.2f}")
