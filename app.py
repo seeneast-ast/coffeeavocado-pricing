@@ -153,10 +153,22 @@ st.sidebar.metric("Live USD → EUR rate", f"{usd_to_eur_rate:.4f}")
 tab1, tab2 = st.tabs(["Calculate Price", "View Database"])
 
 with tab1:
-    # Input width & height in cm
-    st.subheader("Input Width and Height in cm")
-    width_cm = st.number_input("Width (cm)", min_value=1, step=1)
-    height_cm = st.number_input("Height (cm)", min_value=1, step=1)
+    # Option to use predefined sizes or manual input
+    use_predefined = st.checkbox("Use predefined sizes", value=True)
+
+    if use_predefined:
+        selected_size_str = st.selectbox("Select size", OFFERED_SIZES)
+        size_map = {
+            "21x30": (21, 30),
+            "30x40": (30, 40),
+            "45x60": (45, 60),
+            "60x80": (60, 80),
+        }
+        width_cm, height_cm = size_map.get(selected_size_str, (10, 30))
+    else:
+        width_cm = st.number_input("Width (cm)", min_value=1, value=10, step=1)
+        height_cm = st.number_input("Height (cm)", min_value=1, value=30, step=1)
+
     chosen_size_cm2 = width_cm * height_cm
 
     if chosen_size_cm2:
