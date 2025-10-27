@@ -191,9 +191,5 @@ if chosen_size_cm2:
             st.write(f"Profit (€): €{profit_eur:.2f}")
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
-            # Show formula summary
-            total_costs = math.ceil(base_cost_eur + etsy_fee_value + profit_eur)
-            st.markdown("### Print cost + Postage + Etsy fees + Desired profit = Recommended Etsy price")
-            st.write(f"€{base_cost_eur:.2f} + {int(etsy_fee_percent*100)}% Etsy fees + €{profit_eur:.2f} = €{total_costs}")
-else:
+        else:
     st.info("Select or input a valid print size.")
