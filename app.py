@@ -9,7 +9,7 @@ import math
 # -----------------------
 # Config / Defaults
 # -----------------------
-DEFAULT_EXCEL_PATH = "data/print_costs.xlsx"
+DEFAULT_EXCEL_PATH = "print_costs.xlsx"
 DEFAULT_SHEET = "costs"
 DEFAULT_ETS_FEE = 0.15
 DEFAULT_GBP_BASE = "GBP"
