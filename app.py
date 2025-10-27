@@ -112,12 +112,6 @@ def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_per
     profit_eur = final_price * (1 - etsy_fee_percent) - base_cost_eur
     return round(final_price, 2), round(profit_eur, 2)
 
-# New helper function for hover tooltip
-def display_with_tooltip(amount_eur, original_amount, rate, date):
-    tooltip_text = f"Original: {original_amount:.2f}\nRate: {rate:.4f}\nDate: {date}"
-    html_str = f'<span title="{tooltip_text}">{amount_eur:.2f}</span>'
-    return html_str
-
 # -----------------------
 # UI
 # -----------------------
@@ -203,29 +197,27 @@ with tab1:
         else:
             final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
 
-            # Display breakdown with tooltips
+            # Display breakdown with your requested formatting
             st.subheader("Cost Breakdown")
             st.write(f"Cost of print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
 
-            # Print cost in EUR with tooltip
+            # Print cost in EUR with original in parentheses in italics
             if printer_choice == "Monkey Puzzle" and original_price is not None:
-                price_html = display_with_tooltip(base_cost_eur, original_price, gbp_to_eur_rate, current_date)
-                st.markdown(f"**Print cost (EUR):** {price_html}", unsafe_allow_html=True)
+                # GBP original
+                st.markdown(f"**Print cost (€):** €{base_cost_eur:.2f} (<i>£{original_price:.2f}</i>)", unsafe_allow_html=True)
             elif printer_choice == "Artelo" and original_price is not None:
-                price_html = display_with_tooltip(base_cost_eur, original_price, usd_to_eur_rate, current_date)
-                st.markdown(f"**Print cost (EUR):** {price_html}", unsafe_allow_html=True)
+                # USD original
+                st.markdown(f"**Print cost (€):** €{base_cost_eur:.2f} (<i>${original_price:.2f}</i>)", unsafe_allow_html=True)
             else:
-                st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
+                st.write(f"Print cost (€): €{base_cost_eur:.2f}")
 
-            # Postage in EUR with tooltip
+            # Postage in EUR with original in parentheses in italics
             if printer_choice == "Monkey Puzzle" and original_postage is not None:
-                postage_html = display_with_tooltip(postage_eur, original_postage, gbp_to_eur_rate, current_date)
-                st.markdown(f"**Postage (EUR):** {postage_html}", unsafe_allow_html=True)
+                st.markdown(f"**Postage (€):** €{postage_eur:.2f} (<i>£{original_postage:.2f}</i>)", unsafe_allow_html=True)
             elif printer_choice == "Artelo" and original_postage is not None:
-                postage_html = display_with_tooltip(postage_eur, original_postage, usd_to_eur_rate, current_date)
-                st.markdown(f"**Postage (EUR):** {postage_html}", unsafe_allow_html=True)
+                st.markdown(f"**Postage (€):** €{postage_eur:.2f} (<i>${original_postage:.2f}</i>)", unsafe_allow_html=True)
             else:
-                st.write(f"Postage (EUR): €{postage_eur:.2f}")
+                st.write(f"Postage (€): €{postage_eur:.2f}")
 
             # Etsy fee
             etsy_fee_value = final_price * etsy_fee_percent
