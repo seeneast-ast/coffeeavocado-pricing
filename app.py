@@ -116,8 +116,9 @@ def calc_final_price(base_cost_eur, profit_percent, min_profit_eur, etsy_fee_per
 # UI
 # -----------------------
 st.title("CoffeeAvocado — Print Pricing Helper")
-st.markdown("Upload your `print_costs.xlsx` or use the default. You can select or input your print size.")
+st.markdown("Upload your `print_costs.xlsx` or use the default. Use the tabs below to calculate pricing or view the full database.")
 
+# Upload or load default excel
 uploaded_file = st.file_uploader("Upload print_costs.xlsx (optional, sheet 'costs')", type=["xlsx"])
 
 if uploaded_file:
@@ -148,52 +149,45 @@ usd_to_eur_rate = fetch_usd_to_eur_rate()
 st.sidebar.metric("Live GBP → EUR rate", f"{gbp_to_eur_rate:.4f}")
 st.sidebar.metric("Live USD → EUR rate", f"{usd_to_eur_rate:.4f}")
 
-# Select or input print size
-st.subheader("Select or Input Print Size")
-size_option = st.selectbox("Choose from offered sizes or input your size:", ["Type your size"] + OFFERED_SIZES)
-if size_option == "Type your size":
-    size_input = st.number_input("Enter print size (cm²):", min_value=1, step=1)
-    chosen_size_cm2 = size_input
-else:
-    # Parse size from string like "21x30" -> 21*30
-    try:
-        parts = size_option.split('x')
-        if len(parts) == 2:
-            w, h = int(parts[0]), int(parts[1])
-            chosen_size_cm2 = w * h
+# Tabs for main calculation and database viewing
+tab1, tab2 = st.tabs(["Calculate Price", "View Database"])
+
+with tab1:
+    # Input width & height in cm
+    st.subheader("Input Width and Height in cm")
+    width_cm = st.number_input("Width (cm)", min_value=1, step=1)
+    height_cm = st.number_input("Height (cm)", min_value=1, step=1)
+    chosen_size_cm2 = width_cm * height_cm
+
+    if chosen_size_cm2:
+        row = costs_df[costs_df["size_cm2"] == chosen_size_cm2]
+        if row.empty:
+            st.error("Size not found in database.")
         else:
-            chosen_size_cm2 = int(size_option)
-    except:
-        chosen_size_cm2 = None
+            row = row.iloc[0]
+            # Inputs
+            printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
+            profit_percent = st.number_input("Profit (%)", min_value=0.0, max_value=100.0, value=35.0, step=1.0)
+            min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
+            etsy_fee_percent = st.number_input("Etsy fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
 
-if chosen_size_cm2:
-    row = costs_df[costs_df["size_cm2"] == chosen_size_cm2]
-    if row.empty:
-        st.error("Size not found in database.")
-    else:
-        row = row.iloc[0]
-        # Inputs
-        printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
-        profit_percent = st.number_input("Profit", min_value=0.0, max_value=100.0, value=35.0, step=1.0)
-        min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
-        etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=100.0, value=15.0, step=1.0) / 100
+            # Calculate base cost and postage
+            base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
+            if base_cost_eur is None:
+                st.error("Cost data missing for this size/printer.")
+            else:
+                final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
 
-        # Calculate base cost and postage
-        base_cost_eur, postage_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
-        if base_cost_eur is None:
-            st.error("Cost data missing for this size/printer.")
-        else:
-            final_price, profit_eur = calc_final_price(base_cost_eur, profit_percent/100, min_profit_eur, etsy_fee_percent)
+                # Display breakdown
+                st.subheader("Cost Breakdown")
+                st.write(f"Print area: {width_cm} x {height_cm} cm ({chosen_size_cm2} cm²)")
+                st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
+                st.write(f"Postage (EUR): €{postage_eur:.2f}")
+                etsy_fee_value = final_price * etsy_fee_percent
+                st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
+                st.write(f"Profit (€): €{profit_eur:.2f}")
+                st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
-            # Display breakdown
-            st.subheader("Cost Breakdown")
-            st.write(f"Print area: {chosen_size_cm2} cm²")
-            st.write(f"Print cost (EUR): €{base_cost_eur:.2f}")
-            st.write(f"Postage (EUR): €{postage_eur:.2f}")
-            etsy_fee_value = final_price * etsy_fee_percent
-            st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
-            st.write(f"Profit (€): €{profit_eur:.2f}")
-            st.write(f"Final recommended Etsy price: €{final_price:.2f}")
-
-else:
-    st.info("Select or input a valid print size.")
+with tab2:
+    st.subheader("Full Database")
+    st.dataframe(costs_df)
