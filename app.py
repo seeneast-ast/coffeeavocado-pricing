@@ -229,6 +229,12 @@ with tab1:
             # Etsy fee and final price
             etsy_fee_value = final_price * etsy_fee_percent
             st.write(f"Etsy fee ({int(etsy_fee_percent*100)}%): €{etsy_fee_value:.2f}")
+            # Calculate total cost
+            total_cost_eur = print_cost_eur + etsy_fee_value + postage_eur
+
+            # Display total cost
+            st.write(f"Total Cost (€): €{total_cost_eur:.2f}")
+
             st.markdown(f"<p style='color: green;'>Profit (€): {profit_eur:.2f}</p>", unsafe_allow_html=True)
             st.write(f"Final recommended Etsy price: €{final_price:.2f}")
 
