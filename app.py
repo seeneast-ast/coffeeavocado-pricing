@@ -177,9 +177,9 @@ if chosen_size_cm2:
         row = row.iloc[0]
         # Inputs
         printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
-        profit_percent = st.number_input("Desired profit %", min_value=0.0, max_value=5.0, value=0.40, step=0.05, format="%.2f") / 100
+        profit_percent = st.number_input("Desired profit %", min_value=0.0, max_value=5.0, value=0.40, step=0.05, format="%.2f")
         min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
-        etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=0.5, value=DEFAULT_ETS_FEE, step=0.01, format="%.2f") / 100
+        etsy_fee_percent = st.number_input("Etsy fee %", min_value=0.0, max_value=0.5, value=DEFAULT_ETS_FEE, step=0.01, format="%.2f")
 
         # Calculate base cost
         base_cost_eur = compute_cost_for_choice(row, printer_choice, gbp_to_eur_rate, usd_to_eur_rate)
