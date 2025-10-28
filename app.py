@@ -339,7 +339,7 @@ except Exception:
     # Safer method: reload Excel sheet and get row 13 manually
     try:
         df_full = pd.read_excel(DEFAULT_EXCEL_PATH, sheet_name=DEFAULT_SHEET, header=None, engine="openpyxl")
-        etsy_price_val = df_full.iloc[12, costs_df.index[costs_df["size_cm2"] == row["size_cm2"]][0]]
+        etsy_price_val = df_full.iloc[13, costs_df.index[costs_df["size_cm2"] == row["size_cm2"]][0]]
     except Exception:
         etsy_price_val = None
 
@@ -356,7 +356,7 @@ else:
 st.markdown(
     f"""
     <div style='background-color: #fff9e6; padding: 15px; border-radius: 10px; border-left: 5px solid #ffb300; margin-top: 20px;'>
-        <h4 style='color: #ff8f00; margin-top: 0;'>Current Etsy Listing</h4>
+        <h4 style='color: #orange; margin-top: 0;'>Current Etsy Listing</h4>
         <p style='font-size: 1.1em;'>
             <b>Etsy Price:</b> {etsy_price_display}<br>
             <b>Current Profit:</b> {current_profit_display}
