@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 
 # --- Load Excel Data ---
+import pandas as pd
+import streamlit as st
+
 @st.cache_data
 def load_data():
-    file_path = "your_file.xlsx"  # Update this with your actual file name
+    file_path = "print_costs.xlsx"
     df = pd.read_excel(file_path, header=None)
     return df
 
