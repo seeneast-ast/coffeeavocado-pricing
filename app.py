@@ -309,7 +309,7 @@ with tab1:
                     f"""
                     <div style='background-color: #e0f7fa; padding: 15px; border-radius: 10px; border-left: 5px solid #00bcd4;'>
                         <h4 style='color: green; margin-top: 0;'>Final Recommendation</h4>
-                        <p style='font-size: 1.2em;'>
+                        <p style='font-size: 1.2em; color: green;'>
                             **Recommended Selling Price (Turnover):** **€{final_price:.2f}**
                         </p>
                         <p style='font-size: 1.1em; color: green;'>
