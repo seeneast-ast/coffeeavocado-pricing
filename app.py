@@ -357,7 +357,7 @@ st.markdown(
     f"""
     <div style='background-color: #fff9e6; padding: 15px; border-radius: 10px; border-left: 5px solid #ffb300; margin-top: 20px;'>
         <h4 style='color: orange; margin-top: 0;'>Current Etsy Listing</h4>
-        <p style='font-size: 1.1em;'>
+        <p style='font-size: 1.1em; color: orange;'>
             <b>Etsy Price:</b> {etsy_price_display}<br>
             <b>Current Profit:</b> {current_profit_display}
         </p>
