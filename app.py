@@ -339,7 +339,7 @@ except Exception:
     # Safer method: reload Excel sheet and get row 13 manually
     try:
         df_full = pd.read_excel(DEFAULT_EXCEL_PATH, sheet_name=DEFAULT_SHEET, header=None, engine="openpyxl")
-        etsy_price_val = df_full.iloc[13, costs_df.index[costs_df["size_cm2"] == row["size_cm2"]][0]]
+        etsy_price_val = df_full.iloc[11, costs_df.index[costs_df["size_cm2"] == row["size_cm2"]][0]]
     except Exception:
         etsy_price_val = None
 
