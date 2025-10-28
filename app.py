@@ -245,7 +245,7 @@ with tab1:
                 "Business Tax/Cotisations Sociales (%) (French BIC Micro-entreprise)", 
                 min_value=0.0, 
                 max_value=100.0, 
-                value=13.1, 
+                value=12.3, 
                 step=0.1
             )
 
