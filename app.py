@@ -308,11 +308,11 @@ with tab1:
                 st.markdown(
                     f"""
                     <div style='background-color: #e0f7fa; padding: 15px; border-radius: 10px; border-left: 5px solid #00bcd4;'>
-                        <h4 style='color: #00838f; margin-top: 0;'>Final Recommendation</h4>
+                        <h4 style='color: green; margin-top: 0;'>Final Recommendation</h4>
                         <p style='font-size: 1.2em;'>
                             **Recommended Selling Price (Turnover):** **€{final_price:.2f}**
                         </p>
-                        <p style='font-size: 1.1em;'>
+                        <p style='font-size: 1.1em; color: green;'>
                             Total Outgoings (Base Cost + Fees + Tax): **€{total_outgoings_eur:.2f}**
                         </p>
                         <p style='color: green; font-weight: bold; font-size: 1.1em;'>
