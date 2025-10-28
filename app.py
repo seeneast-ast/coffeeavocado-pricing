@@ -333,7 +333,7 @@ with tab2:
                 # NEW SECTION: Current Etsy Listing
                 # -----------------------------
                 # Try to get Etsy price from row 13 (index 12 because zero-based)
-                try:
+try:
                     etsy_price_val = df.iloc[12, costs_df.columns.get_loc(row.name)]  # fallback if structure known
                 except Exception:
                     # Safer method: reload Excel sheet and get row 13 manually
