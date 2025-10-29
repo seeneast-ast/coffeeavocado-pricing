@@ -1,5 +1,10 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import requests
+from io import BytesIO
+import os
+import datetime
 from forex_python.converter import CurrencyRates
 
 # ---- Config ----
