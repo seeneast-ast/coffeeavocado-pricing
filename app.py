@@ -11,7 +11,7 @@ import datetime
 # -----------------------
 DEFAULT_EXCEL_PATH = "print_costs.xlsx"  # default path
 DEFAULT_SHEET = "costs"
-OFFERED_SIZES = ["21x30", "30x40", "45x60", "60x80"]
+OFFERED_SIZES = ["15x21" , "21x30", "30x40", "45x60", "60x80"]
 
 st.set_page_config(page_title="CoffeeAvocado — Print Pricing", layout="wide")
 
@@ -332,11 +332,11 @@ with tab2:
   # -----------------------------
 # NEW SECTION: Current Etsy Listing
 # -----------------------------
-# Try to get Etsy price from row 13 (index 12 because zero-based)
+# Try to get Etsy price from row 12 (index 11 because zero-based)
 try:
-    etsy_price_val = df.iloc[12, costs_df.columns.get_loc(row.name)]  # fallback if structure known
+    etsy_price_val = df.iloc[11, costs_df.columns.get_loc(row.name)]  # fallback if structure known
 except Exception:
-    # Safer method: reload Excel sheet and get row 13 manually
+    # Safer method: reload Excel sheet and get row 11 manually
     try:
         df_full = pd.read_excel(DEFAULT_EXCEL_PATH, sheet_name=DEFAULT_SHEET, header=None, engine="openpyxl")
         etsy_price_val = df_full.iloc[11, costs_df.index[costs_df["size_cm2"] == row["size_cm2"]][0]]
