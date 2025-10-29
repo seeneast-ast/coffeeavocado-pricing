@@ -11,7 +11,7 @@ import datetime
 # -----------------------
 DEFAULT_EXCEL_PATH = "print_costs.xlsx"  # default path
 DEFAULT_SHEET = "costs"
-OFFERED_SIZES = ["15x21" , "21x30", "30x40", "45x60", "60x80"]
+OFFERED_SIZES = ["15x21" , "21x30", "30x40", "35x45" , "45x60", "60x80"]
 
 st.set_page_config(page_title="CoffeeAvocado — Print Pricing", layout="wide")
 
@@ -234,9 +234,9 @@ with tab1:
             with col1:
                 printer_choice = st.selectbox("Printer", ["Monkey Puzzle", "Artelo"])
             with col2:
-                profit_percent_input = st.number_input("Desired Profit (%)", min_value=0.0, max_value=100.0, value=35.0, step=1.0)
+                profit_percent_input = st.number_input("Desired Profit (%)", min_value=0.0, max_value=100.0, value=30.0, step=1.0)
             with col3:
-                min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
+                min_profit_eur = st.number_input("Minimum profit (€)", min_value=0.0, value=5.0, step=0.5)
             with col4:
                 etsy_fee_percent_input = st.number_input("Etsy Fee (%)", min_value=0.0, max_value=100.0, value=15.0, step=1.0)
             
