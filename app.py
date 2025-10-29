@@ -1,174 +1,112 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from forex_python.converter import CurrencyRates
-import math
 
-st.set_page_config(page_title="Etsy Price Calculator", page_icon="🧾", layout="centered")
+# ---- Config ----
+EXCEL_FILE = "print_costs.xlsx"
+BIC_ABATEMENT = 0.71   # 71% of profit is taxable
+BIC_TAX_RATE = 0.11    # 11% average rate after abatement
+DEFAULT_PROFIT_MARGIN = 0.15  # 15%
 
-DEFAULT_EXCEL_PATH = "print_costs.xlsx"
-DEFAULT_SHEET = 0
-DEFAULT_ETSY_FEE = 0.15
-
-OFFERED_SIZES = ["21x30", "30x40", "45x60", "60x80"]
-
-
-# --- Read Excel ------------------------------------------------------------
+# ---- Load Data ----
 @st.cache_data
-def read_matrix_excel(path, sheet=DEFAULT_SHEET):
+def load_data():
+    df = pd.read_excel(EXCEL_FILE, header=None)
+    return df
+
+# ---- Currency conversion ----
+@st.cache_data
+def get_gbp_to_eur():
     try:
-        df = pd.read_excel(path, sheet_name=sheet, header=None, engine="openpyxl")
-    except Exception as e:
-        st.error(f"Error loading Excel file: {e}")
-        return pd.DataFrame()
+        c = CurrencyRates()
+        return c.get_rate('GBP', 'EUR')
+    except Exception:
+        # fallback rate if no internet or API issue
+        return 1.17
 
-    max_col = df.shape[1]
-    sizes = df.iloc[0, :].tolist()
-
-    monkey_prices = df.iloc[5, :].tolist() if df.shape[0] > 5 else [None] * max_col
-    monkey_postage = df.iloc[6, :].tolist() if df.shape[0] > 6 else [None] * max_col
-    artelo_prices = df.iloc[8, :].tolist() if df.shape[0] > 8 else [None] * max_col
-    artelo_postage = df.iloc[9, :].tolist() if df.shape[0] > 9 else [None] * max_col
-    etsy_prices = df.iloc[12, :].tolist() if df.shape[0] > 12 else [None] * max_col  # row 13
-
-    tidy = []
-    for i, s in enumerate(sizes):
-        if pd.isna(s):
-            continue
-        try:
-            size_val = float(s)
-            size_int = int(round(size_val))
-        except:
-            continue
-
-        def safe_float(v):
-            return None if pd.isna(v) else float(v)
-
-        tidy.append({
-            "size_cm2": size_int,
-            "monkey_price_gbp": safe_float(monkey_prices[i]),
-            "monkey_postage_gbp": safe_float(monkey_postage[i]),
-            "artelo_price_eur": safe_float(artelo_prices[i]),
-            "artelo_postage_eur": safe_float(artelo_postage[i]),
-            "etsy_price_eur": safe_float(etsy_prices[i]),
-        })
-
-    return pd.DataFrame(tidy).sort_values("size_cm2").reset_index(drop=True)
-
-
-# --- Save Etsy Prices ------------------------------------------------------
-def save_matrix_excel(path, df_tidy):
-    try:
-        original = pd.read_excel(path, sheet_name=DEFAULT_SHEET, header=None, engine="openpyxl")
-        for _, row in df_tidy.iterrows():
-            match = np.where(original.iloc[0, :] == row["size_cm2"])[0]
-            if len(match) > 0:
-                col_index = match[0]
-                original.iloc[12, col_index] = row["etsy_price_eur"]
-        original.to_excel(path, sheet_name=DEFAULT_SHEET, index=False, header=False, engine="openpyxl")
-        st.success("✅ Etsy prices saved to Excel!")
-    except Exception as e:
-        st.error(f"Failed to save Excel file: {e}")
-
-
-# --- Calculations ----------------------------------------------------------
-def calculate_price(print_cost, postage, desired_profit_pct, min_profit, etsy_fee):
+# ---- Compute pricing ----
+def compute_price(print_cost, postage, etsy_fee, profit_margin, bic_tax):
     subtotal = print_cost + postage
-    desired_profit_value = max(subtotal * desired_profit_pct, min_profit)
-    total_before_fee = subtotal + desired_profit_value
-    recommended_price = total_before_fee / (1 - etsy_fee)
-    etsy_fee_value = recommended_price * etsy_fee
-    return {
-        "print_cost": round(print_cost, 2),
-        "postage": round(postage, 2),
-        "etsy_fee": round(etsy_fee_value, 2),
-        "desired_profit": round(desired_profit_value, 2),
-        "recommended_price": math.ceil(recommended_price)
-    }
+    etsy_fees = subtotal * etsy_fee
+    profit = subtotal * profit_margin
+    bic_tax_amount = profit * BIC_ABATEMENT * BIC_TAX_RATE
+    total = subtotal + etsy_fees + profit + bic_tax_amount
+    return total, etsy_fees, profit, bic_tax_amount
 
+# ---- App Layout ----
+st.title("🖼️ Etsy Price Calculator")
 
-# --- UI -------------------------------------------------------------------
-st.title("🧾 Etsy Print Price Calculator")
+st.markdown("Upload your updated Excel file if needed:")
+uploaded = st.file_uploader("Upload Excel", type=["xlsx"], key="uploader")
+if uploaded:
+    df = pd.read_excel(uploaded, header=None)
+else:
+    df = load_data()
 
-tab1, tab2 = st.tabs(["💰 Price Calculator", "📊 Database"])
+gbp_to_eur = get_gbp_to_eur()
+st.write(f"💱 Current GBP → EUR rate: **{gbp_to_eur:.2f}**")
 
-costs_df = read_matrix_excel(DEFAULT_EXCEL_PATH)
+sizes = ["21x30", "30x40", "45x60", "60x80"]
+selected_size = st.selectbox("Select a print size", sizes)
 
-# === TAB 1 : Price Calculator =============================================
-with tab1:
-    st.subheader("Price Estimator")
+# Match sizes to cm²
+size_to_area = {"21x30": 630, "30x40": 1200, "45x60": 2700, "60x80": 4800}
+area = size_to_area[selected_size]
 
-    printer = st.selectbox("Choose printer:", ["Monkey Puzzle", "Artelo"])
-    choice_type = st.radio("How do you want to choose the size?", ["Choose from offered sizes", "Enter custom size"])
+# Read Excel rows
+monkey_price = df.iloc[5, int(area / 100 - 3)] if len(df.columns) > int(area / 100 - 3) else None
+artelo_price = df.iloc[7, int(area / 100 - 3)] if len(df.columns) > int(area / 100 - 3) else None
+etsy_current = df.iloc[13, int(area / 100 - 3)] if len(df.columns) > int(area / 100 - 3) else None
 
-    if choice_type == "Choose from offered sizes":
-        selected_size = st.selectbox("Select a print size:", OFFERED_SIZES)
-        width_cm, height_cm = map(int, selected_size.split("x"))
-        area = width_cm * height_cm
-    else:
-        width_cm = st.number_input("Width (cm)", min_value=1, value=30, step=1)
-        height_cm = st.number_input("Height (cm)", min_value=1, value=40, step=1)
-        area = width_cm * height_cm
+# Monkey Puzzle postage £6.50 → EUR
+monkey_postage = 6.5 * gbp_to_eur
+artelo_postage = 15 if area < 3000 else 20
 
-        if st.button("➕ Add to predefined sizes"):
-            new_size = f"{width_cm}x{height_cm}"
-            if new_size not in OFFERED_SIZES:
-                OFFERED_SIZES.append(new_size)
-                st.success(f"Added {new_size} to offered sizes!")
-            else:
-                st.info(f"{new_size} already exists.")
+st.subheader("💡 Pricing comparison")
 
-    desired_profit_pct = st.slider("Desired profit (%)", 10, 100, 35)
-    min_profit = st.number_input("Minimum profit (€)", min_value=0.0, value=7.0, step=0.5)
+etsy_fee_rate = st.number_input("Etsy fees (%)", value=15.0, step=0.5) / 100
+profit_margin = st.number_input("Desired profit (%)", value=15.0, step=0.5) / 100
 
-    st.markdown("---")
-
-    match = costs_df[costs_df["size_cm2"] == area]
-    if match.empty:
-        st.warning("This size is not yet defined in your Excel file.")
-    else:
-        row = match.iloc[0]
-        if printer == "Artelo":
-            print_cost = row["artelo_price_eur"] or 0
-            postage = row["artelo_postage_eur"] or 0
-        else:
-            print_cost = row["monkey_price_gbp"] or 0
-            postage = row["monkey_postage_gbp"] or 0
-
-        if pd.isna(print_cost):
-            st.warning("No print cost set yet for this size.")
-        else:
-            result = calculate_price(print_cost, postage, desired_profit_pct / 100, min_profit, DEFAULT_ETSY_FEE)
-
-            st.metric("📏 Print Area", f"{area} cm²")
-            st.metric("💶 Recommended Etsy Price", f"{result['recommended_price']} €")
-
-            st.markdown("---")
-            st.markdown("**Breakdown:**")
-            st.write(f"Print cost: **{result['print_cost']} €**")
-            st.write(f"Postage: **{result['postage']} €**")
-            st.write(f"Etsy fees (15%): **{result['etsy_fee']} €**")
-            st.write(f"Desired profit ({desired_profit_pct}% or min {min_profit} €): **{result['desired_profit']} €**")
-            st.markdown("---")
-            st.markdown(f"**Print cost + postage + Etsy fees + desired profit = {result['recommended_price']} €**")
-
-
-# === TAB 2 : Database ======================================================
-with tab2:
-    st.subheader("Full Database (Editable Etsy Prices)")
-    st.markdown("Below are your production costs and current Etsy listing prices. Edit Etsy prices directly if needed.")
-
-    editable_df = st.data_editor(
-        costs_df,
-        use_container_width=True,
-        num_rows="fixed",
-        column_config={
-            "size_cm2": "Size (cm²)",
-            "etsy_price_eur": st.column_config.NumberColumn("Etsy Price (€)", help="Edit and save your Etsy prices here."),
-        },
-        hide_index=True,
-        disabled=["size_cm2", "monkey_price_gbp", "monkey_postage_gbp", "artelo_price_eur", "artelo_postage_eur"],
+if artelo_price is not None and not pd.isna(artelo_price):
+    artelo_total, etsy_fees, profit, tax = compute_price(
+        artelo_price, artelo_postage, etsy_fee_rate, profit_margin, BIC_TAX_RATE
     )
+else:
+    artelo_total = None
 
-    if st.button("💾 Save Etsy Prices to Excel"):
-        save_matrix_excel(DEFAULT_EXCEL_PATH, editable_df)
+if monkey_price is not None and not pd.isna(monkey_price):
+    monkey_total, _, _, _ = compute_price(
+        monkey_price * gbp_to_eur, monkey_postage, etsy_fee_rate, profit_margin, BIC_TAX_RATE
+    )
+else:
+    monkey_total = None
+
+# ---- Display Results ----
+st.write(f"### {selected_size} — {area} cm²")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("**Artelo:**")
+    if artelo_total:
+        st.write(f"Print cost: {artelo_price:.2f} €")
+        st.write(f"Postage: {artelo_postage:.2f} €")
+        st.write(f"Etsy fee: {(etsy_fee_rate*100):.1f}% → {etsy_fees:.2f} €")
+        st.write(f"Profit margin: {(profit_margin*100):.1f}% → {profit:.2f} €")
+        st.write(f"BIC tax: {tax:.2f} €")
+        st.markdown(f"**Recommended Etsy price: {artelo_total:.2f} €**")
+    else:
+        st.write("Not set yet.")
+
+with col2:
+    st.markdown("**Monkey Puzzle:**")
+    if monkey_total:
+        st.write(f"Print cost: {monkey_price:.2f} £ → {(monkey_price * gbp_to_eur):.2f} €")
+        st.write(f"Postage: £6.50 → {monkey_postage:.2f} €")
+        st.markdown(f"**Recommended Etsy price: {monkey_total:.2f} €**")
+    else:
+        st.write("Not set yet.")
+
+if etsy_current is not None and not pd.isna(etsy_current):
+    st.write(f"🛒 **Current Etsy price:** {etsy_current:.2f} €")
+else:
+    st.write("🛒 **Current Etsy price:** Not set yet")
